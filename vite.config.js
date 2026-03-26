@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import react from '@vitejs/plugin-react'
 import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
 
 export default defineConfig({
   plugins: [
     vue({ template: { transformAssetUrls } }),
+    react({ include: /\.jsx$/ }),
     quasar({
       sassVariables: false,
       config: {

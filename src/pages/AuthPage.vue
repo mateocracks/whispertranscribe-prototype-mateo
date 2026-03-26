@@ -8,7 +8,7 @@
         </div>
         <div class="text-h5 text-weight-medium q-mb-xs">Get started with</div>
         <div class="text-h4 text-weight-medium text-primary q-mb-lg">60 free minutes</div>
-        <q-btn color="primary" label="Continue" class="q-btn--lg full-width" @click="step = 1" />
+        <q-btn no-caps color="primary" label="Continue" class="q-btn--lg full-width" @click="step = 1" />
       </div>
 
       <!-- Steps 1–3 with step indicator -->
@@ -51,7 +51,7 @@
             class="q-mb-md default-input"
           />
           <div class="flex justify-end q-mt-md">
-            <q-btn label="Next" color="primary" @click="step = 2" />
+            <q-btn no-caps label="Next" color="primary" @click="step = 2" />
           </div>
         </div>
 
@@ -67,7 +67,7 @@
             class="q-mb-md default-input"
           />
           <div class="flex justify-end q-mt-md">
-            <q-btn label="Next" color="primary" :disable="!projectName?.trim()" @click="step = 3" />
+            <q-btn no-caps label="Next" color="primary" :disable="!projectName?.trim()" @click="step = 3" />
           </div>
         </div>
 
@@ -85,6 +85,7 @@
           </div>
           <div class="flex justify-end q-mt-md">
             <q-btn
+              no-caps
               label="Next"
               color="primary"
               :disable="!selectedProfile"
@@ -99,8 +100,8 @@
         <div class="text-h4 q-mt-xl q-mb-sm">Welcome to WhisperTranscribe!</div>
         <div class="q-mb-lg">Your workspace is set up for you 🎉</div>
         <div class="column items-center q-gutter-y-sm">
-          <q-btn label="Add your first transcript" color="primary" @click="goToStart" />
-          <q-btn flat color="primary" label="View example" @click="goToExample" />
+          <q-btn no-caps label="Add your first transcript" color="primary" @click="goToStart" />
+          <q-btn no-caps flat color="primary" label="View example" @click="goToExample" />
         </div>
       </div>
     </q-card>

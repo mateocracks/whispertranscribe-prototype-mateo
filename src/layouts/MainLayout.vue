@@ -1,9 +1,9 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-drawer v-model="drawer" :width="200" :breakpoint="0" bordered class="bg-primary">
-      <div class="column full-height">
-        <div class="q-pa-md q-pt-lg text-center">
-          <img src="/logos/logo-sidebar.svg" alt="WhisperTranscribe" style="width: 160px" />
+    <q-drawer v-model="drawer" :width="300" :breakpoint="0" bordered class="bg-primary" :no-swipe-open="true" :no-swipe-close="true">
+      <div class="column full-height" style="overflow: hidden">
+        <div class="q-pa-md q-pt-lg">
+          <img src="/logos/logo-sidebar.svg" alt="WhisperTranscribe" style="width: 140px" />
         </div>
         <div class="q-px-md q-mb-md">
           <q-btn
@@ -31,7 +31,7 @@
           </q-input>
         </div>
 
-        <div class="q-px-sm col">
+        <div class="q-px-sm col" style="overflow-y: auto; overflow-x: hidden">
           <q-item
             clickable
             dark
@@ -66,7 +66,7 @@
               <q-icon name="sym_o_account_circle" color="white" />
             </q-item-section>
             <q-item-section>
-              <q-item-label class="text-white text-caption">patrick.capulong@gmail.com</q-item-label>
+              <q-item-label class="text-white text-caption ellipsis">patrick.capulong@gmail.com</q-item-label>
               <q-item-label class="text-white text-caption" style="opacity: 0.7">60 minutes left</q-item-label>
             </q-item-section>
             <q-item-section side>
@@ -83,7 +83,7 @@
     </q-drawer>
 
     <q-page-container>
-      <q-banner dense class="bg-amber-1 text-center" style="min-height: 32px; font-size: 13px">
+      <q-banner dense class="text-center" style="min-height: 32px; font-size: 13px; background: #f1ecfc; color: #424242">
         Enjoy 10% off on any subscription (also annual) with code <b>GXODAZNA</b> ⏱ <i>Ends in 16h 58m.</i>
         <a href="#" class="text-primary" style="margin-left: 4px">Check out plans</a>
       </q-banner>

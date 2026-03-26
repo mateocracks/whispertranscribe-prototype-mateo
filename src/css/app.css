@@ -2,6 +2,10 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
+.q-btn {
+  text-transform: none;
+}
+
 .border-radius-16 {
   border-radius: 16px;
 }
@@ -80,6 +84,15 @@ body {
 }
 
 /* Transcript viewer */
+.paragraph {
+  padding: 12px 0 12px 0.75rem;
+}
+.paragraph-meta {
+  min-width: 250px;
+  max-width: 250px;
+  min-height: 70px;
+  padding-bottom: 12px;
+}
 .paragraph-text {
   max-width: 750px;
   min-height: 1.5rem;

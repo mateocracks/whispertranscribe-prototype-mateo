@@ -1,8 +1,8 @@
 <template>
-  <div class="row no-wrap q-py-sm" style="border-bottom: 1px solid #f0f0f0">
-    <div class="speaker-dropdown q-pr-md">
+  <div class="paragraph row no-wrap">
+    <div class="paragraph-meta q-pr-md">
       <div
-        class="row items-center q-px-sm q-py-xs rounded-borders"
+        class="row items-center q-px-sm q-py-xs rounded-borders speaker-tag"
         :style="speakerStyle"
       >
         <span class="text-weight-medium" style="font-size: 13px">{{ speakerLabel }}</span>
@@ -22,7 +22,7 @@
         </span>
       </div>
     </div>
-    <div class="paragraph-text text-body2 q-pt-xs" style="color: #424242; line-height: 1.7">
+    <div class="paragraph-text text-body2" style="color: #424242; line-height: 1.7">
       {{ text }}
     </div>
   </div>

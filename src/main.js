@@ -26,3 +26,7 @@ app.use(Quasar, {
 })
 app.use(router)
 app.mount('#app')
+
+if (import.meta.env.DEV) {
+  import('./agentation.jsx')
+}

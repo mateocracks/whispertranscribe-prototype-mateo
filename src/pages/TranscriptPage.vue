@@ -36,26 +36,32 @@
     <template v-if="activeTab === 'transcript'">
       <div class="col column" style="min-height: 0">
         <!-- Toolbar -->
-        <div class="row items-center q-px-lg q-py-sm q-gutter-x-xs" style="border-bottom: 1px solid #f0f0f0">
-          <q-input
-            v-model="searchText"
-            dense
-            outlined
-            placeholder="Find and Replace"
-            style="width: 220px"
-            class="default-input"
-          >
-            <template v-slot:prepend>
-              <q-icon name="sym_o_search" size="18px" />
-            </template>
-          </q-input>
-          <q-btn flat dense round icon="sym_r_undo" color="grey-7" size="sm" />
-          <q-btn flat dense round icon="sym_r_redo" color="grey-7" size="sm" />
-          <q-separator vertical class="q-mx-xs" />
-          <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_o_file_copy" label="Copy" />
-          <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_o_translate" label="Translate" />
-          <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_o_download" label="Export" />
-          <q-btn flat dense round icon="sym_o_more_vert" color="grey-7" size="sm" />
+        <div class="row items-center q-px-lg q-py-sm" style="border-bottom: 1px solid #f0f0f0">
+          <div class="toolbar-group row items-center no-wrap q-gutter-x-xs q-mr-sm">
+            <q-input
+              v-model="searchText"
+              dense
+              outlined
+              placeholder="Find and Replace"
+              style="width: 220px"
+              class="default-input"
+            >
+              <template v-slot:prepend>
+                <q-icon name="sym_o_search" size="18px" />
+              </template>
+            </q-input>
+          </div>
+          <div class="toolbar-group row items-center no-wrap q-mr-sm">
+            <q-btn flat dense round icon="sym_r_undo" color="grey-7" size="sm" />
+            <q-btn flat dense round icon="sym_r_redo" color="grey-7" size="sm" />
+          </div>
+          <q-space />
+          <div class="toolbar-group row items-center no-wrap">
+            <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_o_file_copy" label="Copy" />
+            <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_o_translate" label="Translate" />
+            <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_o_download" label="Export" />
+          </div>
+          <q-btn flat dense round icon="sym_o_more_vert" color="grey-7" size="sm" class="q-ml-xs" />
         </div>
 
         <!-- Transcript Segments -->
@@ -369,5 +375,10 @@ function applyInline(text) {
 .aspect-icon--active {
   border-color: #743ee4;
   background: #743ee4;
+}
+.toolbar-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 2px 4px;
 }
 </style>
