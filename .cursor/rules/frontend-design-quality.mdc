@@ -1,0 +1,51 @@
+---
+description: Frontend design quality standards for building distinctive interfaces
+globs:
+alwaysApply: true
+---
+
+# Frontend Design Quality
+
+Build distinctive, intentional interfaces. Avoid generic AI output. Every design decision should feel deliberate, not default.
+
+## Typography
+
+- Choose fonts that are distinctive and context-appropriate. Pair a display font with a clean body font.
+- Use a clear type scale with varied weights to create hierarchy.
+- DON'T use overused fonts: Inter, Roboto, Arial, Open Sans, or system defaults.
+- DON'T put large icons with rounded corners above every heading — it looks templated.
+
+## Color
+
+- Commit to a cohesive palette. One dominant color with sharp accents beats a timid, evenly-distributed palette.
+- Tint neutrals toward the brand hue for subconscious cohesion.
+- DON'T use gray text on colored backgrounds — use a shade of the background color instead.
+- DON'T use pure black (#000) or pure white (#fff) — always tint slightly.
+- DON'T default to purple-to-blue gradients, cyan-on-dark, or neon accents on dark backgrounds.
+- DON'T use gradient text on headings — it's decorative, not meaningful.
+
+## Layout and Space
+
+- Create visual rhythm through varied spacing — tight groupings and generous separations.
+- Use asymmetry and unexpected compositions. Break the grid intentionally for emphasis.
+- DON'T wrap everything in cards. Not everything needs a container.
+- DON'T nest cards inside cards.
+- DON'T use identical card grids — same-sized cards with icon + heading + text, repeated endlessly.
+- DON'T center everything — left-aligned text with asymmetric layouts often feels more designed.
+- DON'T use the same spacing everywhere — without rhythm, layouts feel monotonous.
+
+## Visual Details
+
+- Use intentional, purposeful decorative elements that reinforce the brand.
+- DON'T use glassmorphism everywhere — blur effects and glow borders used decoratively, not purposefully.
+- DON'T use rounded rectangles with generic drop shadows — safe, forgettable, could be any AI output.
+
+## Motion
+
+- Focus on high-impact moments: one well-orchestrated page load with staggered reveals beats scattered micro-interactions.
+- DON'T use bounce or elastic easing — it feels dated. Real objects decelerate smoothly.
+
+## Copy
+
+- Every word should earn its place. Don't repeat information users can already see.
+- DON'T write vague copy like "Achieve your goals" or "A better way to manage your workflow." Be specific to this product, this audience, this problem.

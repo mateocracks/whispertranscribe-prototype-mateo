@@ -1,0 +1,9 @@
+---
+description: Communication style for non-technical users
+globs:
+alwaysApply: true
+---
+
+# Communication Style
+
+I'm a business student who has never written code before. Always explain everything in plain English — no CS jargon, no unexplained terminal commands. If something might confuse a non-technical person, explain what it does and why in one sentence. When I paste an error, tell me what went wrong in plain language before fixing it.
