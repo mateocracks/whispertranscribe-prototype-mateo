@@ -13,19 +13,18 @@
 
       <!-- Steps 1–3 with step indicator -->
       <template v-if="step >= 1 && step <= 3">
-        <div class="flex flex-center no-wrap q-mb-md">
+        <div class="row items-center no-wrap q-mb-md">
           <template v-for="(s, i) in stepDefs" :key="s.n">
-            <q-badge
+            <div
+              class="step-badge"
               :class="{
-                'bg-primary text-white': s.n < step,
-                'bg-purple-3': s.n === step,
-                'bg-purple-1': s.n > step,
+                'step-badge--done': s.n < step,
+                'step-badge--active': s.n === step,
+                'step-badge--future': s.n > step,
               }"
-              rounded
-              :style="badgeStyle"
             >
               {{ s.n }}
-            </q-badge>
+            </div>
             <q-icon
               v-if="i < stepDefs.length - 1"
               name="sym_o_trending_flat"
@@ -132,16 +131,6 @@ const cardWidth = computed(() => {
 
 const stepDefs = [{ n: 1 }, { n: 2 }, { n: 3 }]
 
-const badgeStyle = {
-  fontSize: '12px',
-  width: '24px',
-  height: '24px',
-  borderRadius: '50%',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}
-
 function completeOnboarding() {
   step.value = 4
 }
@@ -161,5 +150,28 @@ function goToExample() {
 .profiles-list {
   max-height: calc(100vh - 400px);
   overflow-y: auto;
+}
+.step-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.step-badge--done {
+  background: #743ee4;
+  color: #fff;
+}
+.step-badge--active {
+  background: #e3d8fa;
+  color: #743ee4;
+}
+.step-badge--future {
+  background: #f9f5ff;
+  color: #743ee4;
 }
 </style>

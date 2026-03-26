@@ -123,24 +123,35 @@
             <q-input
               v-model="chatMessage"
               outlined
-              dense
               placeholder="Ask me anything about the transcript..."
               class="col default-input"
             />
-            <q-btn unelevated color="primary" icon="sym_o_send" round dense />
+            <q-btn unelevated no-caps color="primary" label="Send" style="border-radius: 8px; height: 40px" />
           </div>
         </div>
 
         <!-- Content area -->
-        <div v-else class="col scroll q-px-lg q-py-md">
-          <div
-            v-if="activeContentBody"
-            class="content-body text-body2"
-            style="max-width: 800px; line-height: 1.8; color: #424242"
-            v-html="renderMarkdown(activeContentBody)"
-          />
-          <div v-else class="text-grey-5 text-body1 q-pa-xl text-center">
-            No content available for this tab yet.
+        <div v-else class="col scroll">
+          <!-- Content header -->
+          <div class="q-px-lg q-py-sm bg-purple-1 row items-center" style="border-bottom: 1px solid #e3d8fa">
+            <span class="text-primary text-body2 text-weight-medium">{{ activeContentTab }}</span>
+          </div>
+          <!-- Action icons -->
+          <div class="q-px-lg q-py-xs row items-center q-gutter-x-xs">
+            <q-btn flat dense round icon="sym_o_file_copy" color="grey-7" size="sm" />
+            <q-btn flat dense round icon="sym_o_edit_square" color="grey-7" size="sm" />
+            <q-btn flat dense round icon="sym_o_refresh" color="grey-7" size="sm" />
+          </div>
+          <div class="q-px-lg q-pb-lg">
+            <div
+              v-if="activeContentBody"
+              class="content-body text-body2"
+              style="max-width: 800px; line-height: 1.8; color: #424242"
+              v-html="renderMarkdown(activeContentBody)"
+            />
+            <div v-else class="text-grey-5 text-body1 q-pa-xl text-center">
+              No content available for this tab yet.
+            </div>
           </div>
         </div>
       </div>
@@ -151,75 +162,85 @@
       <div class="col column q-px-lg q-py-md" style="min-height: 0">
         <!-- Top bar -->
         <div class="row items-center q-mb-md">
-          <q-btn-toggle
-            v-model="aspectRatio"
-            no-caps
-            dense
-            unelevated
-            toggle-color="primary"
-            color="white"
-            text-color="grey-7"
-            :options="[
-              { label: '9:16', value: '9:16' },
-              { label: '16:9', value: '16:9' },
-              { label: '1:1', value: '1:1' },
-            ]"
-            style="border: 1px solid #e0e0e0; border-radius: 8px"
-          />
+          <div class="row no-wrap q-gutter-x-sm">
+            <div
+              v-for="ar in aspectRatios"
+              :key="ar.value"
+              class="column items-center cursor-pointer q-px-xs"
+              @click="aspectRatio = ar.value"
+            >
+              <div
+                class="aspect-icon rounded-borders"
+                :class="{ 'aspect-icon--active': aspectRatio === ar.value }"
+                :style="ar.style"
+              />
+              <span class="text-caption q-mt-xs" :class="aspectRatio === ar.value ? 'text-weight-medium' : 'text-grey-7'">{{ ar.label }}</span>
+            </div>
+          </div>
           <q-space />
-          <q-btn flat no-caps dense color="primary" icon="sym_o_history" label="Export history" />
+          <q-btn outline no-caps dense color="grey-7" icon="sym_o_download" label="Export history" style="border-radius: 20px" />
         </div>
 
         <!-- Main visual area -->
         <div class="row col q-gutter-x-lg" style="min-height: 0">
           <!-- Preview area -->
-          <div
-            class="col rounded-borders column items-center justify-center"
-            style="background: #f5f5f5; min-height: 300px; border: 1px solid #e0e0e0"
-          >
-            <q-icon name="sym_o_movie" size="64px" color="grey-4" />
-            <span class="text-grey-5 q-mt-sm">Preview area</span>
+          <div class="col column" style="min-height: 0">
+            <div
+              class="col rounded-borders column items-center justify-center"
+              style="background: #f0f0f0; min-height: 350px"
+            >
+              <q-icon name="sym_o_image" size="64px" color="grey-4" />
+              <div class="text-caption text-grey-5 q-mt-md cursor-pointer">
+                Create your first clip <q-icon name="sym_o_arrow_forward" size="14px" />
+              </div>
+            </div>
           </div>
 
           <!-- Right panel -->
-          <div style="width: 360px" class="column">
-            <div class="text-subtitle1 text-weight-medium q-mb-md">What do you want to create?</div>
-            <div class="row q-gutter-sm q-mb-lg">
+          <div style="width: 340px; border: 1px solid #e0e0e0; border-radius: 12px" class="column q-pa-lg">
+            <div class="text-h6 text-weight-bold text-primary text-center q-mb-md">What do you want to create?</div>
+
+            <div class="text-body2 text-weight-medium q-mb-sm">1. Please select video clips or audiograms</div>
+            <div class="row q-gutter-sm q-mb-lg justify-center">
               <div
                 class="clip-type rounded-borders column items-center justify-center cursor-pointer"
                 :class="{ 'clip-type-selected': clipType === 'audiogram' }"
                 @click="clipType = 'audiogram'"
               >
-                <q-icon name="sym_o_graphic_eq" size="48px" color="primary" />
-                <span class="text-body2 text-weight-medium q-mt-sm">Audiogram</span>
+                <q-icon name="sym_o_image" size="40px" color="dark" class="q-mb-xs" />
+                <span class="text-body2 text-weight-bold">Audiogram</span>
+                <span class="text-caption text-grey-7 text-center">Add text and image to your audio</span>
               </div>
               <div
                 class="clip-type rounded-borders column items-center justify-center cursor-pointer"
                 :class="{ 'clip-type-selected': clipType === 'video' }"
                 @click="clipType = 'video'"
               >
-                <q-icon name="sym_o_movie" size="48px" color="primary" />
-                <span class="text-body2 text-weight-medium q-mt-sm">Video Clip</span>
+                <q-icon name="sym_o_movie" size="40px" color="dark" class="q-mb-xs" />
+                <span class="text-body2 text-weight-bold">Video Clip</span>
+                <span class="text-caption text-grey-7 text-center">Create clips from your video</span>
               </div>
             </div>
 
-            <div class="text-subtitle2 text-weight-medium q-mb-sm">Choose your starting point</div>
-            <q-btn
-              unelevated
-              no-caps
-              color="primary"
-              label="Create AI clips"
-              class="full-width q-mb-sm"
-              style="border-radius: 8px"
-            />
-            <q-btn
-              outline
-              no-caps
-              color="primary"
-              label="Start from scratch"
-              class="full-width"
-              style="border-radius: 8px"
-            />
+            <div class="text-body2 text-weight-medium q-mb-md">2. Chose your starting point</div>
+            <div class="column items-center">
+              <q-btn
+                unelevated
+                no-caps
+                color="primary"
+                label="Create AI clips"
+                style="border-radius: 20px; min-width: 180px"
+                class="q-mb-sm"
+              />
+              <span class="text-caption text-grey-7 q-mb-sm">or</span>
+              <q-btn
+                outline
+                no-caps
+                color="primary"
+                label="Start from scratch"
+                style="border-radius: 20px; min-width: 180px"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -237,8 +258,14 @@ const activeTab = ref('transcript')
 const searchText = ref('')
 const showMagicChat = ref(false)
 const chatMessage = ref('')
-const aspectRatio = ref('16:9')
+const aspectRatio = ref('9:16')
 const clipType = ref('audiogram')
+
+const aspectRatios = [
+  { value: '9:16', label: '9:16', style: { width: '20px', height: '32px' } },
+  { value: '16:9', label: '16:9', style: { width: '32px', height: '20px' } },
+  { value: '1:1', label: '1:1', style: { width: '24px', height: '24px' } },
+]
 
 const mainTabs = [
   { label: 'Transcript', value: 'transcript' },
@@ -333,5 +360,14 @@ function applyInline(text) {
 .scroll-x {
   overflow-x: auto;
   scrollbar-width: thin;
+}
+.aspect-icon {
+  border: 2px solid #bdbdbd;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.aspect-icon--active {
+  border-color: #743ee4;
+  background: #743ee4;
 }
 </style>
