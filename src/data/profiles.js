@@ -1,0 +1,16 @@
+export const profiles = [
+  { id: 'transcript', val: 'transcript', label: 'I just need a transcript', description: 'Transcript, summary, magic chat', icon: '/icons/profile-065c562c-9529-4e2b-878f-0ccdec7de11e.svg' },
+  { id: 'podcaster', val: 'podcaster', label: 'Podcaster', description: 'Show notes, titles, social media posts, and more', icon: '/icons/profile-ea8eb51a-126e-4440-b04d-2281c275bedb.svg' },
+  { id: 'youtuber', val: 'youtuber', label: 'YouTuber', description: 'Titles, tags, YT description, social media posts, and more', icon: '/icons/profile-b489221d-82cf-470f-9c78-dd9aaf972b05.svg' },
+  { id: 'student', val: 'student', label: 'Student', description: 'Study guide, summary by topic, study questions, and more', icon: '/icons/profile-1fdbc413-85b4-4e80-934f-d1290726052b.svg' },
+  { id: 'meetings', val: 'meetings', label: 'Meetings', description: 'Meeting minutes and more', icon: '/icons/profile-dc26ead8-f478-4f3b-a59e-886eda5b50ea.svg' },
+  { id: 'researcher', val: 'researcher', label: 'Researcher', description: 'Sentiment analysis, summary by topic, and more', icon: '/icons/profile-89f0ea6c-ec4d-4877-98b4-8f69b8265657.svg' },
+  { id: 'educator', val: 'educator', label: 'Educator', description: 'Study guide, lecture notes, study questions, and more', icon: '/icons/profile-e16e1d9d-c767-485c-b1ac-ecc8a94e7b49.svg' },
+  { id: 'courses', val: 'courses', label: 'Courses & Webinars', description: 'Course description, FAQ, actionable tips, and more', icon: '/icons/profile-4284c848-4d92-4a90-acc1-38587aff5026.svg' },
+  { id: 'journalist', val: 'journalist', label: 'Journalist', description: 'Important moments, follow up questions, and more', icon: '/icons/profile-7c80bf14-fdd1-499b-943b-78c91c891128.svg' },
+  { id: 'coach', val: 'coach', label: 'Coach', description: 'Session worksheet, language analysis, and more', icon: '/icons/profile-bd9e3d6e-2743-47cf-859f-ae49f6b0ff46.svg' },
+  { id: 'ux-researcher', val: 'ux-researcher', label: 'UX Researcher / Product Manager', description: 'UX report, follow up questions, transcript insights', icon: '/icons/profile-d8b02fa2-5e2e-4c5c-85c4-b6fd59f3cc49.svg' },
+  { id: 'church', val: 'church', label: 'Church', description: 'Five day devotional, discussion guide, and more', icon: '/icons/profile-f250fa61-8bd8-44bf-9d2a-d93b10981779.svg' },
+  { id: 'sales', val: 'sales', label: 'Sales Calls', description: 'Pain points, customer needs, next steps, and more', icon: '/icons/profile-f58c533b-8e29-4757-80d1-0b4d90fa9b20.svg' },
+  { id: 'custom', val: 'custom', label: 'Custom', description: '', icon: '/icons/profile-ff99214c-747f-434c-9671-2351284c341b.svg' },
+]

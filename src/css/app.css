@@ -1,0 +1,114 @@
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.border-radius-16 {
+  border-radius: 16px;
+}
+
+.border-radius-8 {
+  border-radius: 8px;
+}
+
+/* Purple scale custom classes */
+.bg-purple-1 { background-color: #f9f5ff !important; }
+.bg-purple-2 { background-color: #f1ecfc !important; }
+.bg-purple-3 { background-color: #e3d8fa !important; }
+.bg-purple-4 { background-color: #d5c5f7 !important; }
+.bg-purple-5 { background-color: #c7b2f4 !important; }
+.bg-purple-6 { background-color: #b99ef1 !important; }
+
+.text-purple-1 { color: #f9f5ff !important; }
+.text-purple-2 { color: #f1ecfc !important; }
+.text-purple-3 { color: #e3d8fa !important; }
+
+/* Source tabs (StartPage) */
+.option-box {
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  max-height: 150px;
+  color: #9e9e9e;
+}
+.option-icon { color: #e0e0e0; }
+.option-box:hover {
+  box-shadow: 0 3px 4px rgba(0,0,0,0.12);
+  color: #616161;
+}
+.option-box:hover .option-icon { color: #9e9e9e; }
+.option-box-active {
+  border-color: #743ee4;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.12);
+  color: #743ee4 !important;
+}
+.option-box-active .option-icon { color: #743ee4 !important; }
+
+/* Content Hub tabs */
+.tab-transcript-navigation {
+  font-size: .875rem;
+  cursor: pointer;
+  background-color: #f1ecfc;
+  transition: all .3s;
+  white-space: nowrap;
+  height: 40px;
+}
+.tab-transcript-navigation:hover:not(.tab-transcript-navigation-active) {
+  background-color: #e3d8fa;
+}
+.tab-transcript-navigation-active {
+  background-color: #743ee4;
+  color: #fff;
+}
+
+/* Animated gradient button */
+.bg-gradient-animate {
+  background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #743ee4, #ef4e7b, #f37055, #f37055, #f79533);
+  animation: 6s ease infinite alternate animatedgradient;
+  background-size: 300% 300%;
+}
+.bg-gradient-animate.disabled {
+  background: linear-gradient(90deg, #bcb4d3, #ebc8d5);
+  animation: none;
+}
+.bg-gradient-animate:hover:not(.disabled) {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+@keyframes animatedgradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Transcript viewer */
+.paragraph-text {
+  max-width: 750px;
+  min-height: 1.5rem;
+  text-align: start;
+}
+.speaker-dropdown {
+  min-width: 250px;
+  max-width: 250px;
+}
+
+/* Visual Hub */
+.clip-type {
+  position: relative;
+  border: 1px solid #b99ef1;
+  width: 160px;
+  height: 196px;
+  padding: 1px;
+}
+.clip-type:hover:not(.clip-type-has-overlay) { background: #f1ecfc; }
+.clip-type-selected {
+  border: 2px solid #743ee4;
+  background: #f1ecfc;
+  padding: 0;
+}
+
+/* Auth page */
+.auth-logo { height: 56px; }
+
+/* Default input style */
+.default-input .q-field__control {
+  border-radius: 8px;
+}
