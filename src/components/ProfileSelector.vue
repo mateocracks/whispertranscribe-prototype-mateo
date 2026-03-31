@@ -60,11 +60,11 @@ function isSelected(profile) {
 }
 
 .profile-item:hover {
-  background-color: #f9f5ff;
+  background-color: #f7f7f8;
 }
 
 .profile-item--selected {
-  background-color: #f9f5ff;
+  background-color: #f7f7f8;
   border-color: rgba(116, 62, 228, 0.35);
 }
 

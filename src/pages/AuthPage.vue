@@ -164,15 +164,15 @@ function goToExample() {
   flex-shrink: 0;
 }
 .step-badge--done {
-  background: #743ee4;
+  background: #3d4047;
   color: #fff;
 }
 .step-badge--active {
-  background: #e3d8fa;
-  color: #743ee4;
+  background: #e2e3e6;
+  color: #3d4047;
 }
 .step-badge--future {
-  background: #f9f5ff;
-  color: #743ee4;
+  background: #f7f7f8;
+  color: #3d4047;
 }
 </style>

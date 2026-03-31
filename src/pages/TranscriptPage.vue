@@ -24,7 +24,7 @@
           :key="tab.value"
           class="cursor-pointer q-pb-sm"
           :class="activeTab === tab.value ? 'text-weight-medium' : 'text-grey-7'"
-          :style="activeTab === tab.value ? 'border-bottom: 2px solid #743ee4; color: #743ee4' : ''"
+          :style="activeTab === tab.value ? 'border-bottom: 2px solid #3d4047; color: #3d4047' : ''"
           @click="activeTab = tab.value"
         >
           {{ tab.label }}
@@ -139,7 +139,7 @@
         <!-- Content area -->
         <div v-else class="col scroll">
           <!-- Content header -->
-          <div class="q-px-lg q-py-sm bg-purple-1 row items-center" style="border-bottom: 1px solid #e3d8fa">
+          <div class="q-px-lg q-py-sm bg-purple-1 row items-center" style="border-bottom: 1px solid #e2e3e6">
             <span class="text-primary text-body2 text-weight-medium">{{ activeContentTab }}</span>
           </div>
           <!-- Action icons -->
@@ -373,8 +373,8 @@ function applyInline(text) {
   transition: all 0.2s;
 }
 .aspect-icon--active {
-  border-color: #743ee4;
-  background: #743ee4;
+  border-color: #3d4047;
+  background: #3d4047;
 }
 .toolbar-group {
   border: 1px solid #e0e0e0;

@@ -14,17 +14,17 @@ body {
   border-radius: 8px;
 }
 
-/* Purple scale custom classes */
-.bg-purple-1 { background-color: #f9f5ff !important; }
-.bg-purple-2 { background-color: #f1ecfc !important; }
-.bg-purple-3 { background-color: #e3d8fa !important; }
-.bg-purple-4 { background-color: #d5c5f7 !important; }
-.bg-purple-5 { background-color: #c7b2f4 !important; }
-.bg-purple-6 { background-color: #b99ef1 !important; }
+/* Neutral gray scale (legacy class names kept for compatibility) */
+.bg-purple-1 { background-color: #f7f7f8 !important; }
+.bg-purple-2 { background-color: #efeff1 !important; }
+.bg-purple-3 { background-color: #e2e3e6 !important; }
+.bg-purple-4 { background-color: #d4d5da !important; }
+.bg-purple-5 { background-color: #c8c9cf !important; }
+.bg-purple-6 { background-color: #b8bac2 !important; }
 
-.text-purple-1 { color: #f9f5ff !important; }
-.text-purple-2 { color: #f1ecfc !important; }
-.text-purple-3 { color: #e3d8fa !important; }
+.text-purple-1 { color: #f7f7f8 !important; }
+.text-purple-2 { color: #efeff1 !important; }
+.text-purple-3 { color: #e2e3e6 !important; }
 
 /* Source tabs (StartPage) */
 .option-box {
@@ -41,37 +41,37 @@ body {
 }
 .option-box:hover .option-icon { color: #9e9e9e; }
 .option-box-active {
-  border-color: #743ee4;
+  border-color: #3d4047;
   box-shadow: 0 2px 3px rgba(0,0,0,0.12);
-  color: #743ee4 !important;
+  color: #3d4047 !important;
 }
-.option-box-active .option-icon { color: #743ee4 !important; }
+.option-box-active .option-icon { color: #3d4047 !important; }
 
 /* Content Hub tabs */
 .tab-transcript-navigation {
   font-size: .875rem;
   cursor: pointer;
-  background-color: #f1ecfc;
+  background-color: #efeff1;
   transition: all .3s;
   white-space: nowrap;
   height: 40px;
 }
 .tab-transcript-navigation:hover:not(.tab-transcript-navigation-active) {
-  background-color: #e3d8fa;
+  background-color: #e2e3e6;
 }
 .tab-transcript-navigation-active {
-  background-color: #743ee4;
+  background-color: #3d4047;
   color: #fff;
 }
 
 /* Animated gradient button */
 .bg-gradient-animate {
-  background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #743ee4, #ef4e7b, #f37055, #f37055, #f79533);
+  background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #6e7179, #ef4e7b, #f37055, #f37055, #f79533);
   animation: 6s ease infinite alternate animatedgradient;
   background-size: 300% 300%;
 }
 .bg-gradient-animate.disabled {
-  background: linear-gradient(90deg, #bcb4d3, #ebc8d5);
+  background: linear-gradient(90deg, #c5c6ca, #dcdbde);
   animation: none;
 }
 .bg-gradient-animate:hover:not(.disabled) {
@@ -106,15 +106,15 @@ body {
 /* Visual Hub */
 .clip-type {
   position: relative;
-  border: 1px solid #b99ef1;
+  border: 1px solid #b8bac2;
   width: 160px;
   height: 196px;
   padding: 1px;
 }
-.clip-type:hover:not(.clip-type-has-overlay) { background: #f1ecfc; }
+.clip-type:hover:not(.clip-type-has-overlay) { background: #efeff1; }
 .clip-type-selected {
-  border: 2px solid #743ee4;
-  background: #f1ecfc;
+  border: 2px solid #3d4047;
+  background: #efeff1;
   padding: 0;
 }
 

@@ -193,8 +193,8 @@ function onTranscribe() {
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .upload-drop-zone--active {
-  border-color: #743ee4;
-  background: #f9f5ff;
+  border-color: #3d4047;
+  background: #f7f7f8;
 }
 .transcribe-cta.q-btn--disabled {
   opacity: 1 !important;

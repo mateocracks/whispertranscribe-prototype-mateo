@@ -11,8 +11,8 @@ export default defineConfig({
       sassVariables: false,
       config: {
         brand: {
-          primary: '#743ee4',
-          secondary: '#743ee4',
+          primary: '#3d4047',
+          secondary: '#3d4047',
           accent: '#ffa400',
           positive: '#21ba45',
           negative: '#c10015',

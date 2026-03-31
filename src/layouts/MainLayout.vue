@@ -83,7 +83,7 @@
     </q-drawer>
 
     <q-page-container>
-      <q-banner dense class="text-center" style="min-height: 32px; font-size: 13px; background: #f1ecfc; color: #424242">
+      <q-banner dense class="text-center" style="min-height: 32px; font-size: 13px; background: #efeff1; color: #424242">
         Enjoy 10% off on any subscription (also annual) with code <b>GXODAZNA</b> ⏱ <i>Ends in 16h 58m.</i>
         <a href="#" class="text-primary" style="margin-left: 4px">Check out plans</a>
       </q-banner>

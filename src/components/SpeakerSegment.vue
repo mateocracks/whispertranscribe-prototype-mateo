@@ -45,9 +45,9 @@ const isPurple = computed(() => props.speaker === 0)
 const speakerStyle = computed(() => {
   if (isPurple.value) {
     return {
-      borderLeft: '3px solid #743ee4',
-      background: '#f9f5ff',
-      color: '#743ee4',
+      borderLeft: '3px solid #3d4047',
+      background: '#f7f7f8',
+      color: '#3d4047',
     }
   }
   return {
