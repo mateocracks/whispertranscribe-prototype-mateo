@@ -2,15 +2,37 @@
   <div class="tx">
     <header class="tx-header">
       <h1 class="tx-title">Transcribe</h1>
-      <p class="tx-lead">Drop an audio or video file. Whisper runs on your Mac—nothing leaves your machine.</p>
+      <p v-if="apiMode === 'cloud'" class="tx-lead">
+        Drop an audio or video file. This hosted version sends it to
+        <strong>OpenAI</strong> for transcription (your project must have an API key in Vercel). The same key powers the optional AI tabs: clean text, social post, and a Substack-style blog draft.
+      </p>
+      <p v-else class="tx-lead">
+        Drop an audio or video file. Whisper runs on your Mac. Optional AI views (clean text, social post, Substack-style blog) need an API key—see
+        <code class="tx-code">server/README.md</code>.
+      </p>
       <div v-if="apiStatus === 'down'" class="tx-banner tx-banner--warn" role="status">
-        Local API is not running. In the project folder, run
-        <code class="tx-code">npm run dev:all</code>
-        (or <code class="tx-code">npm run server</code> in a second terminal).
+        <template v-if="apiMode === 'cloud' || (apiMode === 'unknown' && isProd)">
+          Can’t reach the app’s API. If you deployed this yourself, open the Vercel dashboard: confirm the deployment succeeded and
+          <code class="tx-code">OPENAI_API_KEY</code> is set under Environment Variables.
+        </template>
+        <template v-else>
+          Local API is not running. In the project folder, run
+          <code class="tx-code">npm run dev:all</code>
+          (or <code class="tx-code">npm run server</code> in a second terminal).
+        </template>
       </div>
       <div v-else-if="apiStatus === 'ok'" class="tx-meta">
-        API ready
-        <span v-if="healthProfile" class="tx-meta-detail">· {{ healthProfile }} · {{ healthCommand }}</span>
+        <template v-if="apiMode === 'cloud'">
+          Hosted · OpenAI transcription
+          <span v-if="hasOpenAi" class="tx-meta-detail">· AI tabs on</span>
+          <span v-else class="tx-meta-detail">· AI tabs off (add API key in Vercel)</span>
+        </template>
+        <template v-else>
+          API ready
+          <span v-if="healthProfile" class="tx-meta-detail">· {{ healthProfile }} · {{ healthCommand }}</span>
+          <span v-if="hasOpenAi" class="tx-meta-detail">· AI polish on</span>
+          <span v-else class="tx-meta-detail">· AI polish off (no key)</span>
+        </template>
       </div>
     </header>
 
@@ -35,6 +57,9 @@
           or drag it here
         </p>
         <p v-if="file" class="tx-filename">{{ file.name }}</p>
+        <p v-if="apiMode === 'cloud' && file && cloudUploadHint" class="tx-upload-hint" role="status">
+          {{ cloudUploadHint }}
+        </p>
       </div>
 
       <details class="tx-details">
@@ -59,6 +84,17 @@
               autocomplete="off"
             />
           </label>
+          <p v-if="apiMode === 'cloud'" class="tx-options-note">
+            The <strong>Model</strong> menu only affects the app when you run the API on your own computer. Here, transcription always uses OpenAI’s hosted Whisper model.
+          </p>
+          <p v-else class="tx-options-note">
+            For AI tabs (clean transcript, social media, blog post), set
+            <code class="tx-code">OPENAI_API_KEY</code> before starting the server (see
+            <code class="tx-code">server/README.md</code>).
+          </p>
+          <p v-if="apiMode === 'cloud'" class="tx-options-note">
+            On Vercel, add <code class="tx-code">OPENAI_API_KEY</code> in Project → Settings → Environment Variables, then redeploy.
+          </p>
         </div>
       </details>
 
@@ -109,9 +145,16 @@
       <div class="tx-result-head">
         <h2 class="tx-h2">Transcript</h2>
         <div class="tx-result-actions">
-          <button type="button" class="tx-btn tx-btn--ghost" @click="copyText">Copy</button>
           <button
-            v-if="result.txtContent"
+            type="button"
+            class="tx-btn tx-btn--ghost"
+            :disabled="!activeViewText()"
+            @click="copyActiveView"
+          >
+            Copy
+          </button>
+          <button
+            v-if="viewMode === 'timed' && result.txtContent"
             type="button"
             class="tx-btn tx-btn--ghost"
             @click="downloadTxt"
@@ -119,7 +162,23 @@
             Download .txt
           </button>
           <button
-            v-if="result.vttContent"
+            v-if="viewMode === 'clean' && cleanOutput"
+            type="button"
+            class="tx-btn tx-btn--ghost"
+            @click="downloadCleanTxt"
+          >
+            Download cleaned .txt
+          </button>
+          <button
+            v-if="viewMode === 'blog' && blogOutput"
+            type="button"
+            class="tx-btn tx-btn--ghost"
+            @click="downloadBlogTxt"
+          >
+            Download blog .txt
+          </button>
+          <button
+            v-if="viewMode === 'timed' && result.vttContent"
             type="button"
             class="tx-btn tx-btn--ghost"
             @click="downloadVtt"
@@ -128,13 +187,180 @@
           </button>
         </div>
       </div>
-      <div v-if="result.segments?.length" class="tx-segments">
-        <div v-for="(seg, i) in result.segments" :key="i" class="tx-seg">
-          <span class="tx-time">{{ formatTime(seg.start) }} – {{ formatTime(seg.end) }}</span>
-          <p class="tx-seg-text">{{ seg.text }}</p>
-        </div>
+
+      <div class="tx-view-tabs" role="tablist" aria-label="Transcript view">
+        <button
+          type="button"
+          role="tab"
+          class="tx-tab"
+          :class="{ 'tx-tab--active': viewMode === 'timed' }"
+          :aria-selected="viewMode === 'timed'"
+          title="With timestamps"
+          @click="viewMode = 'timed'"
+        >
+          Timestamps
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tx-tab"
+          :class="{ 'tx-tab--active': viewMode === 'clean' }"
+          :aria-selected="viewMode === 'clean'"
+          title="Clean transcript"
+          @click="openCleanTab"
+        >
+          Clean
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tx-tab"
+          :class="{ 'tx-tab--active': viewMode === 'social' }"
+          :aria-selected="viewMode === 'social'"
+          title="Social media description"
+          @click="openSocialTab"
+        >
+          Social
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tx-tab"
+          :class="{ 'tx-tab--active': viewMode === 'blog' }"
+          :aria-selected="viewMode === 'blog'"
+          title="Blog post for Substack"
+          @click="openBlogTab"
+        >
+          Blog
+        </button>
       </div>
-      <p v-else class="tx-plain">{{ result.text }}</p>
+
+      <div v-show="viewMode === 'timed'" class="tx-view-pane" role="tabpanel">
+        <div v-if="result.segments?.length" class="tx-segments">
+          <div v-for="(seg, i) in result.segments" :key="i" class="tx-seg">
+            <span class="tx-time">{{ formatTime(seg.start) }} – {{ formatTime(seg.end) }}</span>
+            <p class="tx-seg-text">{{ seg.text }}</p>
+          </div>
+        </div>
+        <p v-else class="tx-plain">{{ result.text }}</p>
+      </div>
+
+      <div v-show="viewMode === 'clean'" class="tx-view-pane" role="tabpanel">
+        <p v-if="!hasOpenAi" class="tx-ai-hint">
+          <template v-if="apiMode === 'cloud'">
+            Add <code class="tx-code">OPENAI_API_KEY</code> in Vercel → Project → Settings → Environment Variables, redeploy, then open this tab again.
+          </template>
+          <template v-else>
+            Set <code class="tx-code">OPENAI_API_KEY</code> in your environment, restart
+            <code class="tx-code">npm run dev:all</code>, then open this tab again. See
+            <code class="tx-code">server/README.md</code>.
+          </template>
+        </p>
+        <template v-else>
+          <p v-if="aiTruncated.clean" class="tx-ai-trunc">Only the first part of very long transcripts is sent to the AI.</p>
+          <div v-if="aiLoading === 'clean'" class="tx-ai-progress-block">
+            <div class="tx-progress-track tx-progress-track--ai">
+              <div
+                class="tx-progress-fill tx-progress-fill--work"
+                :class="{ 'tx-progress-fill--ai-done': aiProgressPercent >= 100 }"
+                :style="{ width: `${Math.min(100, Math.max(0, aiProgressPercent))}%` }"
+              />
+            </div>
+            <div class="tx-ai-progress-meta">
+              <span class="tx-progress-pct tx-progress-pct--ai">{{ Math.round(Math.min(100, Math.max(0, aiProgressPercent))) }}%</span>
+              <span class="tx-progress-hint">Cleaning transcript…</span>
+            </div>
+          </div>
+          <p v-else-if="cleanError" class="tx-ai-err" role="alert">{{ cleanError }}</p>
+          <div v-else-if="cleanOutput" class="tx-ai-readout">{{ cleanOutput }}</div>
+          <div v-else class="tx-ai-placeholder">Loading…</div>
+          <button
+            v-if="cleanOutput && aiLoading !== 'clean'"
+            type="button"
+            class="tx-btn tx-btn--ghost tx-regen"
+            @click="regenerate('clean')"
+          >
+            Regenerate
+          </button>
+        </template>
+      </div>
+
+      <div v-show="viewMode === 'social'" class="tx-view-pane" role="tabpanel">
+        <p v-if="!hasOpenAi" class="tx-ai-hint">
+          <template v-if="apiMode === 'cloud'">
+            Add <code class="tx-code">OPENAI_API_KEY</code> in Vercel, redeploy, then try again.
+          </template>
+          <template v-else>
+            Set <code class="tx-code">OPENAI_API_KEY</code> in your environment, restart the server, then try again.
+          </template>
+        </p>
+        <template v-else>
+          <p v-if="aiTruncated.social" class="tx-ai-trunc">Only the first part of very long transcripts is sent to the AI.</p>
+          <div v-if="aiLoading === 'social'" class="tx-ai-progress-block">
+            <div class="tx-progress-track tx-progress-track--ai">
+              <div
+                class="tx-progress-fill tx-progress-fill--work"
+                :class="{ 'tx-progress-fill--ai-done': aiProgressPercent >= 100 }"
+                :style="{ width: `${Math.min(100, Math.max(0, aiProgressPercent))}%` }"
+              />
+            </div>
+            <div class="tx-ai-progress-meta">
+              <span class="tx-progress-pct tx-progress-pct--ai">{{ Math.round(Math.min(100, Math.max(0, aiProgressPercent))) }}%</span>
+              <span class="tx-progress-hint">Writing social media description…</span>
+            </div>
+          </div>
+          <p v-else-if="socialError" class="tx-ai-err" role="alert">{{ socialError }}</p>
+          <div v-else-if="socialOutput" class="tx-ai-readout tx-ai-readout--social">{{ socialOutput }}</div>
+          <div v-else class="tx-ai-placeholder">Loading…</div>
+          <button
+            v-if="socialOutput && aiLoading !== 'social'"
+            type="button"
+            class="tx-btn tx-btn--ghost tx-regen"
+            @click="regenerate('social')"
+          >
+            Regenerate
+          </button>
+        </template>
+      </div>
+
+      <div v-show="viewMode === 'blog'" class="tx-view-pane" role="tabpanel">
+        <p v-if="!hasOpenAi" class="tx-ai-hint">
+          <template v-if="apiMode === 'cloud'">
+            Add <code class="tx-code">OPENAI_API_KEY</code> in Vercel, redeploy, then try again.
+          </template>
+          <template v-else>
+            Set <code class="tx-code">OPENAI_API_KEY</code> in your environment, restart the server, then try again.
+          </template>
+        </p>
+        <template v-else>
+          <p class="tx-blog-hint">Plain text draft—paste into a new Substack post (title + body).</p>
+          <p v-if="aiTruncated.blog" class="tx-ai-trunc">Only the first part of very long transcripts is sent to the AI.</p>
+          <div v-if="aiLoading === 'blog'" class="tx-ai-progress-block">
+            <div class="tx-progress-track tx-progress-track--ai">
+              <div
+                class="tx-progress-fill tx-progress-fill--work"
+                :class="{ 'tx-progress-fill--ai-done': aiProgressPercent >= 100 }"
+                :style="{ width: `${Math.min(100, Math.max(0, aiProgressPercent))}%` }"
+              />
+            </div>
+            <div class="tx-ai-progress-meta">
+              <span class="tx-progress-pct tx-progress-pct--ai">{{ Math.round(Math.min(100, Math.max(0, aiProgressPercent))) }}%</span>
+              <span class="tx-progress-hint">Writing blog post…</span>
+            </div>
+          </div>
+          <p v-else-if="blogError" class="tx-ai-err" role="alert">{{ blogError }}</p>
+          <div v-else-if="blogOutput" class="tx-ai-readout tx-ai-readout--blog">{{ blogOutput }}</div>
+          <div v-else class="tx-ai-placeholder">Loading…</div>
+          <button
+            v-if="blogOutput && aiLoading !== 'blog'"
+            type="button"
+            class="tx-btn tx-btn--ghost tx-regen"
+            @click="regenerate('blog')"
+          >
+            Regenerate
+          </button>
+        </template>
+      </div>
     </section>
 
     <footer class="tx-footer">
@@ -144,7 +370,27 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+
+/** ~4.5 MB is a common limit on free serverless hosts; larger files may still work on paid plans. */
+const CLOUD_SOFT_LIMIT_BYTES = Math.floor(4.5 * 1024 * 1024)
+const OPENAI_AUDIO_MAX_BYTES = 25 * 1024 * 1024
+const isProd = import.meta.env.PROD
+
+const viewMode = ref('timed')
+const cleanOutput = ref('')
+const socialOutput = ref('')
+const blogOutput = ref('')
+const cleanError = ref('')
+const socialError = ref('')
+const blogError = ref('')
+const aiLoading = ref(null)
+const aiTruncated = ref({ clean: false, social: false, blog: false })
+const hasOpenAi = ref(false)
+/** 0–100 while AI clean/social is running (smooth ramp + finish at 100). */
+const aiProgressPercent = ref(0)
+
+let aiProgressTimer = null
 
 const fileRef = ref(null)
 const file = ref(null)
@@ -160,10 +406,23 @@ const errorMessage = ref('')
 const result = ref(null)
 
 const apiStatus = ref('checking')
+/** 'unknown' until health loads; then 'local' (your Mac) or 'cloud' (Vercel + OpenAI). */
+const apiMode = ref('unknown')
 const healthProfile = ref('')
 const healthCommand = ref('')
 
 let pollTimer = null
+
+const cloudUploadHint = computed(() => {
+  if (apiMode.value !== 'cloud' || !file.value) return ''
+  if (file.value.size > OPENAI_AUDIO_MAX_BYTES) {
+    return 'This file is over 25 MB—OpenAI will reject it. Trim or export a shorter clip.'
+  }
+  if (file.value.size > CLOUD_SOFT_LIMIT_BYTES) {
+    return 'Note: free Vercel plans often cap request size around 4.5 MB. If upload fails, try a smaller file or a paid Vercel plan.'
+  }
+  return ''
+})
 
 onMounted(async () => {
   try {
@@ -171,10 +430,13 @@ onMounted(async () => {
     if (!r.ok) throw new Error('bad status')
     const data = await r.json()
     apiStatus.value = 'ok'
+    apiMode.value = data.mode === 'cloud' ? 'cloud' : 'local'
     healthProfile.value = data.profile || ''
     healthCommand.value = data.command || ''
+    hasOpenAi.value = Boolean(data.openAiConfigured)
   } catch {
     apiStatus.value = 'down'
+    apiMode.value = 'unknown'
   }
 })
 
@@ -183,7 +445,27 @@ onUnmounted(() => {
     clearInterval(pollTimer)
     pollTimer = null
   }
+  stopAiProgress()
 })
+
+function stopAiProgress() {
+  if (aiProgressTimer != null) {
+    clearInterval(aiProgressTimer)
+    aiProgressTimer = null
+  }
+}
+
+function startAiProgress() {
+  stopAiProgress()
+  aiProgressPercent.value = 3
+  aiProgressTimer = setInterval(() => {
+    const p = aiProgressPercent.value
+    if (p < 88) {
+      const gap = 88 - p
+      aiProgressPercent.value = Math.min(88, p + Math.max(0.45, gap * 0.042))
+    }
+  }, 150)
+}
 
 function onDragLeave(e) {
   const rel = e.relatedTarget
@@ -204,11 +486,24 @@ function onFileChange(e) {
 
 async function startTranscribe() {
   if (!file.value || busy.value) return
+  if (file.value.size > OPENAI_AUDIO_MAX_BYTES) {
+    phase.value = 'error'
+    errorMessage.value =
+      'That file is larger than 25 MB, which OpenAI does not accept. Use a shorter clip or lower-quality export.'
+    progressPercent.value = 0
+    statusMessage.value = ''
+    return
+  }
+  if (apiMode.value === 'cloud') {
+    await startTranscribeCloud()
+    return
+  }
   if (pollTimer) {
     clearInterval(pollTimer)
     pollTimer = null
   }
   result.value = null
+  resetAiViews()
   progressPercent.value = 0
   statusMessage.value = 'Queued…'
   errorMessage.value = ''
@@ -254,6 +549,7 @@ async function startTranscribe() {
         phase.value = 'done'
         progressPercent.value = 100
         result.value = data.result || null
+        resetAiViews()
         busy.value = false
       }
       if (data.status === 'error') {
@@ -275,6 +571,152 @@ async function startTranscribe() {
   pollTimer = setInterval(pollOnce, 700)
 }
 
+/** Hosted (Vercel): one POST returns the full transcript; no job polling. */
+async function startTranscribeCloud() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+  result.value = null
+  resetAiViews()
+  progressPercent.value = 10
+  statusMessage.value = 'Uploading and transcribing…'
+  errorMessage.value = ''
+  phase.value = 'running'
+  busy.value = true
+
+  const bump = setInterval(() => {
+    if (progressPercent.value < 88) {
+      progressPercent.value = Math.min(88, progressPercent.value + 3)
+    }
+  }, 500)
+
+  const fd = new FormData()
+  fd.append('file', file.value)
+  fd.append('model', model.value)
+  if (language.value.trim()) fd.append('language', language.value.trim())
+
+  try {
+    const r = await fetch('/api/transcribe', { method: 'POST', body: fd })
+    const data = await r.json().catch(() => ({}))
+    if (!r.ok) {
+      throw new Error(data.error || `Transcription failed (${r.status})`)
+    }
+    const next = data.result
+    if (!next || (!String(next.text || '').trim() && !(next.segments && next.segments.length))) {
+      throw new Error('No transcript came back from the server.')
+    }
+    result.value = next
+    resetAiViews()
+    phase.value = 'done'
+    progressPercent.value = 100
+    statusMessage.value = ''
+  } catch (e) {
+    phase.value = 'error'
+    errorMessage.value = e.message || 'Something went wrong.'
+    progressPercent.value = 0
+    statusMessage.value = ''
+  } finally {
+    clearInterval(bump)
+    busy.value = false
+  }
+}
+
+function resetAiViews() {
+  stopAiProgress()
+  aiProgressPercent.value = 0
+  viewMode.value = 'timed'
+  cleanOutput.value = ''
+  socialOutput.value = ''
+  blogOutput.value = ''
+  cleanError.value = ''
+  socialError.value = ''
+  blogError.value = ''
+  aiLoading.value = null
+  aiTruncated.value = { clean: false, social: false, blog: false }
+}
+
+async function loadEnhancement(type, force) {
+  if (!result.value?.text) return
+  if (!hasOpenAi.value) {
+    if (type === 'clean') cleanError.value = ''
+    if (type === 'social') socialError.value = ''
+    if (type === 'blog') blogError.value = ''
+    return
+  }
+  if (!force) {
+    if (type === 'clean' && cleanOutput.value) return
+    if (type === 'social' && socialOutput.value) return
+    if (type === 'blog' && blogOutput.value) return
+  }
+  if (type === 'clean') cleanError.value = ''
+  if (type === 'social') socialError.value = ''
+  if (type === 'blog') blogError.value = ''
+  aiLoading.value = type
+  startAiProgress()
+  try {
+    const r = await fetch('/api/ai-enhance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, text: result.value.text }),
+    })
+    const data = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(data.error || `Request failed (${r.status})`)
+    stopAiProgress()
+    aiProgressPercent.value = 100
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    if (type === 'clean') {
+      cleanOutput.value = data.text || ''
+      aiTruncated.value = { ...aiTruncated.value, clean: Boolean(data.truncated) }
+    } else if (type === 'social') {
+      socialOutput.value = data.text || ''
+      aiTruncated.value = { ...aiTruncated.value, social: Boolean(data.truncated) }
+    } else {
+      blogOutput.value = data.text || ''
+      aiTruncated.value = { ...aiTruncated.value, blog: Boolean(data.truncated) }
+    }
+  } catch (e) {
+    stopAiProgress()
+    aiProgressPercent.value = 0
+    const msg = e.message || 'Something went wrong.'
+    if (type === 'clean') cleanError.value = msg
+    else if (type === 'social') socialError.value = msg
+    else blogError.value = msg
+  } finally {
+    aiLoading.value = null
+    aiProgressPercent.value = 0
+  }
+}
+
+function openCleanTab() {
+  viewMode.value = 'clean'
+  void loadEnhancement('clean', false)
+}
+
+function openSocialTab() {
+  viewMode.value = 'social'
+  void loadEnhancement('social', false)
+}
+
+function openBlogTab() {
+  viewMode.value = 'blog'
+  void loadEnhancement('blog', false)
+}
+
+function regenerate(type) {
+  if (type === 'clean') {
+    cleanOutput.value = ''
+    cleanError.value = ''
+  } else if (type === 'social') {
+    socialOutput.value = ''
+    socialError.value = ''
+  } else {
+    blogOutput.value = ''
+    blogError.value = ''
+  }
+  void loadEnhancement(type, true)
+}
+
 function formatTime(s) {
   const n = Number(s)
   if (Number.isNaN(n)) return '0:00'
@@ -284,10 +726,18 @@ function formatTime(s) {
   return ms ? `${m}:${String(sec).padStart(2, '0')}.${ms}` : `${m}:${String(sec).padStart(2, '0')}`
 }
 
-async function copyText() {
-  if (!result.value?.text) return
+function activeViewText() {
+  if (viewMode.value === 'timed') return result.value?.text || ''
+  if (viewMode.value === 'clean') return cleanOutput.value
+  if (viewMode.value === 'social') return socialOutput.value
+  return blogOutput.value
+}
+
+async function copyActiveView() {
+  const t = activeViewText()
+  if (!t) return
   try {
-    await navigator.clipboard.writeText(result.value.text)
+    await navigator.clipboard.writeText(t)
   } catch {
     /* ignore */
   }
@@ -309,6 +759,26 @@ function downloadVtt() {
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
   a.download = 'transcript.vtt'
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function downloadCleanTxt() {
+  if (!cleanOutput.value) return
+  const blob = new Blob([cleanOutput.value], { type: 'text/plain;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'transcript-cleaned.txt'
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function downloadBlogTxt() {
+  if (!blogOutput.value) return
+  const blob = new Blob([blogOutput.value], { type: 'text/plain;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'substack-draft.txt'
   a.click()
   URL.revokeObjectURL(a.href)
 }
@@ -434,6 +904,13 @@ function downloadVtt() {
   color: #6b6e78;
 }
 
+.tx-upload-hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #8a5a2b;
+}
+
 .tx-details {
   margin-top: 1rem;
   font-size: 0.9rem;
@@ -451,6 +928,13 @@ function downloadVtt() {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.tx-options-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #6b6e78;
 }
 
 .tx-label {
@@ -619,6 +1103,146 @@ function downloadVtt() {
 
 .tx-result-head .tx-h2 {
   margin: 0;
+}
+
+.tx-view-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0.25rem;
+  background: #eceae7;
+  border-radius: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.tx-tab {
+  flex: 1 1 0;
+  min-width: max-content;
+  padding: 0.45rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #5c5f68;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.tx-tab:hover {
+  color: #2a2b2f;
+}
+
+.tx-tab--active {
+  background: #faf9f7;
+  color: #1e1f24;
+  box-shadow: 0 1px 2px rgba(42, 43, 47, 0.08);
+}
+
+.tx-view-pane {
+  min-height: 4rem;
+}
+
+.tx-ai-hint {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #5c5f68;
+  padding: 0.75rem 0.85rem;
+  background: #f0eeeb;
+  border-radius: 10px;
+  border: 1px solid #e2dfda;
+}
+
+.tx-ai-trunc {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  color: #8a6d3b;
+}
+
+.tx-ai-progress-block {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.tx-progress-track--ai {
+  height: 9px;
+}
+
+.tx-progress-fill--ai-done {
+  background: linear-gradient(90deg, #2d6a4f, #52b788) !important;
+  animation: none !important;
+}
+
+.tx-ai-progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.55rem;
+}
+
+.tx-progress-pct--ai {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #1e1f24;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.tx-ai-err {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #7c1f2b;
+  padding: 0.75rem 0.85rem;
+  background: #f8edee;
+  border-radius: 10px;
+  border: 1px solid #e8c9cd;
+}
+
+.tx-ai-readout {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #2a2b2f;
+  background: #fff;
+  border: 1px solid #e2dfda;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.tx-ai-readout--social {
+  line-height: 1.55;
+}
+
+.tx-blog-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #6b6e78;
+}
+
+.tx-ai-readout--blog {
+  line-height: 1.65;
+}
+
+.tx-ai-placeholder {
+  font-size: 0.88rem;
+  color: #8a8d96;
+  padding: 0.5rem 0;
+}
+
+.tx-regen {
+  margin-top: 0.75rem;
 }
 
 .tx-segments {

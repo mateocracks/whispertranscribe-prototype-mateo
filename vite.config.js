@@ -9,12 +9,15 @@ export default defineConfig({
     // If it says port in use, run: npm run kill:ports
     port: 5173,
     strictPort: true,
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8787',
-        changeOrigin: true,
+    // Set VITE_PROXY_LOCAL_API=0 to skip the proxy (e.g. `vercel dev` serving /api on the same host).
+    ...(process.env.VITE_PROXY_LOCAL_API !== '0' && {
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8787',
+          changeOrigin: true,
+        },
       },
-    },
+    }),
   },
   plugins: [
     vue({ template: { transformAssetUrls } }),

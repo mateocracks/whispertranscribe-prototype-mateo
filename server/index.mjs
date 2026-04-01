@@ -15,6 +15,7 @@ import {
   parseProgressPercent,
   shouldSkipLine,
 } from './progressParser.mjs'
+import { enhanceTranscript } from '../lib/openaiEnhance.mjs'
 
 const PORT = Number(process.env.WHISPER_API_PORT || 8787)
 const HOST = '127.0.0.1'
@@ -23,6 +24,7 @@ const WEB_UI_HINT =
   process.env.WEB_UI_URL || 'http://127.0.0.1:5173'
 
 const app = express()
+app.use(express.json({ limit: '5mb' }))
 
 // Visiting the API URL in a browser shows nothing useful by default — explain the two servers.
 app.get('/', (_req, res) => {
@@ -51,6 +53,7 @@ app.get('/api/health', (_req, res) => {
   const config = loadWhisperConfig()
   res.json({
     ok: true,
+    mode: 'local',
     profile: config.profile,
     command: config.command,
     host: HOST,
@@ -58,7 +61,41 @@ app.get('/api/health', (_req, res) => {
     whisperCppModelConfigured: Boolean(
       config.profile !== 'whisperCpp' || config.modelPath
     ),
+    openAiConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
   })
+})
+
+/** AI polish: clean transcript, social caption, or blog draft (requires OPENAI_API_KEY). */
+app.post('/api/ai-enhance', async (req, res) => {
+  const rawType = req.body?.type
+  const type =
+    typeof rawType === 'string' ? rawType.trim().toLowerCase() : ''
+  const text = typeof req.body?.text === 'string' ? req.body.text : ''
+
+  const allowed = ['clean', 'social', 'blog']
+  if (!allowed.includes(type)) {
+    res.status(400).json({
+      error:
+        'Invalid or missing type. Use "clean", "social", or "blog". Restart the API server if you just updated the app.',
+    })
+    return
+  }
+  if (!text.trim()) {
+    res.status(400).json({ error: 'Body must include non-empty text.' })
+    return
+  }
+
+  try {
+    const out = await enhanceTranscript(type, text)
+    res.json(out)
+  } catch (e) {
+    const code = e.code
+    if (code === 'NO_API_KEY') {
+      res.status(503).json({ error: e.message })
+      return
+    }
+    res.status(500).json({ error: e.message || 'AI enhancement failed.' })
+  }
 })
 
 app.get('/api/jobs/:id', (req, res) => {

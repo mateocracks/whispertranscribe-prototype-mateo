@@ -30,6 +30,25 @@ which main
 | `WHISPER_COMMAND` | Full path or name of the binary (overrides `command` for the active profile) |
 | `WHISPER_CPP_MODEL` | Path to ggml model when using whisper.cpp (overrides `modelPath`) |
 
+### AI polish (clean transcript & social caption)
+
+The web UI can call an **OpenAI-compatible** chat API to (1) clean up the transcript, (2) write a short-form social description, and (3) draft a simple **Substack-style blog post** from the text. **Whisper still runs only on your Mac**; these steps send **text** to the API you configure.
+
+| Variable | Purpose |
+|----------|---------|
+| `OPENAI_API_KEY` | **Required** for AI tabs. Create a key at [platform.openai.com](https://platform.openai.com/). |
+| `OPENAI_BASE_URL` | Optional. Default `https://api.openai.com/v1`. Use another URL for compatible providers. |
+| `OPENAI_MODEL` | Optional. Default `gpt-4o-mini`. |
+
+**Example (same terminal session before `npm run server`):**
+
+```bash
+export OPENAI_API_KEY="sk-..."
+npm run dev:all
+```
+
+`GET /api/health` includes `openAiConfigured: true` when the key is set.
+
 The OpenAI `whisper` CLI only accepts **one** `--output_format` value (`txt`, `vtt`, `json`, `all`, …). This project uses **`all`** so you get `.json`, `.txt`, `.vtt`, and other formats in one run. If you customize `args` in `whisper.config.json`, do not pass comma-separated formats like `json,vtt,txt`—that will fail on current Whisper builds.
 
 ## Run
