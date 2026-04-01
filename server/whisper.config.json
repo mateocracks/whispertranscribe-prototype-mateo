@@ -1,0 +1,28 @@
+{
+  "profile": "openai",
+  "openai": {
+    "command": "whisper",
+    "args": [
+      "{input}",
+      "--model",
+      "{model}",
+      "--output_dir",
+      "{outputDir}",
+      "--output_format",
+      "all"
+    ]
+  },
+  "whisperCpp": {
+    "command": "whisper-cli",
+    "args": [
+      "-m",
+      "{modelPath}",
+      "-f",
+      "{input}",
+      "-oj",
+      "-of",
+      "{outputBase}"
+    ],
+    "modelPath": "/path/to/ggml-base.bin"
+  }
+}

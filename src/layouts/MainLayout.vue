@@ -14,7 +14,7 @@
             label="New transcription"
             class="full-width"
             style="border-radius: 8px"
-            @click="$router.push('/start')"
+            @click="$router.push('/p/start')"
           />
         </div>
         <div class="q-px-md q-mb-sm">
@@ -36,8 +36,8 @@
             clickable
             dark
             class="rounded-borders q-mb-xs"
-            :class="{ 'bg-white-alpha': $route.path.startsWith('/transcript') }"
-            @click="$router.push('/transcript/example')"
+            :class="{ 'bg-white-alpha': $route.path.startsWith('/p/transcript') }"
+            @click="$router.push('/p/transcript/example')"
           >
             <q-item-section>
               <q-item-label class="text-white text-caption">

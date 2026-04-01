@@ -138,12 +138,12 @@ function completeOnboarding() {
 
 function goToStart() {
   localStorage.setItem('onboardingCompleted', 'true')
-  router.push('/start')
+  router.push('/p/start')
 }
 
 function goToExample() {
   localStorage.setItem('onboardingCompleted', 'true')
-  router.push('/transcript/example')
+  router.push('/p/transcript/example')
 }
 </script>
 

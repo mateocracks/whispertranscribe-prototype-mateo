@@ -4,6 +4,18 @@ import react from '@vitejs/plugin-react'
 import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
 
 export default defineConfig({
+  server: {
+    // Always 5173 so the URL never “moves” to 5174 and confuses the browser.
+    // If it says port in use, run: npm run kill:ports
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     vue({ template: { transformAssetUrls } }),
     react({ include: /\.jsx$/ }),

@@ -3,8 +3,8 @@
     <!-- Page Header -->
     <div class="q-px-lg q-pt-md">
       <div class="row items-center q-mb-xs">
-        <q-icon name="sym_o_arrow_back" size="16px" class="text-primary q-mr-xs cursor-pointer" @click="$router.push('/start')" />
-        <span class="text-caption text-primary cursor-pointer" @click="$router.push('/start')">Projects</span>
+        <q-icon name="sym_o_arrow_back" size="16px" class="text-primary q-mr-xs cursor-pointer" @click="$router.push('/p/start')" />
+        <span class="text-caption text-primary cursor-pointer" @click="$router.push('/p/start')">Projects</span>
         <span class="text-caption text-grey-5 q-mx-xs">/</span>
         <span class="text-caption text-primary cursor-pointer">Examples</span>
         <q-space />
