@@ -3,3 +3,6 @@ dist
 .DS_Store
 *.local
 .vercel
+
+# App lives in its own repo (see ../clientos on this machine)
+clientos/
