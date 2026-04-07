@@ -375,6 +375,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 /** ~4.5 MB is a common limit on free serverless hosts; larger files may still work on paid plans. */
 const CLOUD_SOFT_LIMIT_BYTES = Math.floor(4.5 * 1024 * 1024)
 const OPENAI_AUDIO_MAX_BYTES = 25 * 1024 * 1024
+const CLOUD_TARGET_BYTES = Math.floor(10 * 1024 * 1024)
 const isProd = import.meta.env.PROD
 
 const viewMode = ref('timed')
@@ -416,10 +417,10 @@ let pollTimer = null
 const cloudUploadHint = computed(() => {
   if (apiMode.value !== 'cloud' || !file.value) return ''
   if (file.value.size > OPENAI_AUDIO_MAX_BYTES) {
-    return 'This file is over 25 MB—OpenAI will reject it. Trim or export a shorter clip.'
+    return 'Large file detected. When you click Transcribe, the app will first convert it to smaller speech audio.'
   }
   if (file.value.size > CLOUD_SOFT_LIMIT_BYTES) {
-    return 'Note: free Vercel plans often cap request size around 4.5 MB. If upload fails, try a smaller file or a paid Vercel plan.'
+    return 'This file may be too large for free Vercel upload limits. The app will try to compress it before upload.'
   }
   return ''
 })
@@ -486,10 +487,10 @@ function onFileChange(e) {
 
 async function startTranscribe() {
   if (!file.value || busy.value) return
-  if (file.value.size > OPENAI_AUDIO_MAX_BYTES) {
+  if (apiMode.value === 'cloud' && file.value.size > OPENAI_AUDIO_MAX_BYTES * 4) {
     phase.value = 'error'
     errorMessage.value =
-      'That file is larger than 25 MB, which OpenAI does not accept. Use a shorter clip or lower-quality export.'
+      'That file is extremely large. Please trim it or export audio only before uploading.'
     progressPercent.value = 0
     statusMessage.value = ''
     return
@@ -591,8 +592,22 @@ async function startTranscribeCloud() {
     }
   }, 500)
 
+  let uploadFile = file.value
+  if (shouldOptimizeForCloud(file.value)) {
+    statusMessage.value = 'Optimizing audio for transcription…'
+    progressPercent.value = 14
+    uploadFile = await optimizeForCloudUpload(file.value)
+    statusMessage.value = `Uploading optimized audio (${formatMb(uploadFile.size)} MB)…`
+    progressPercent.value = 22
+  }
+  if (uploadFile.size > OPENAI_AUDIO_MAX_BYTES) {
+    throw new Error(
+      'This file is still over 25 MB after optimization. Please trim it into shorter parts.'
+    )
+  }
+
   const fd = new FormData()
-  fd.append('file', file.value)
+  fd.append('file', uploadFile)
   fd.append('model', model.value)
   if (language.value.trim()) fd.append('language', language.value.trim())
 
@@ -620,6 +635,129 @@ async function startTranscribeCloud() {
     clearInterval(bump)
     busy.value = false
   }
+}
+
+function shouldOptimizeForCloud(f) {
+  if (!f) return false
+  if (f.size > OPENAI_AUDIO_MAX_BYTES) return true
+  if (f.size > CLOUD_SOFT_LIMIT_BYTES) return true
+  return String(f.type || '').startsWith('video/')
+}
+
+function formatMb(bytes) {
+  return (Math.max(0, Number(bytes) || 0) / (1024 * 1024)).toFixed(1)
+}
+
+function getPreferredAudioMime() {
+  if (typeof MediaRecorder === 'undefined') return ''
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4',
+    'audio/ogg;codecs=opus',
+  ]
+  return candidates.find((m) => MediaRecorder.isTypeSupported?.(m)) || ''
+}
+
+function buildOptimizedName(originalName, mimeType) {
+  const stem = String(originalName || 'audio')
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^\w.-]+/g, '_')
+  if (mimeType.includes('mp4')) return `${stem}-speech.m4a`
+  if (mimeType.includes('ogg')) return `${stem}-speech.ogg`
+  return `${stem}-speech.webm`
+}
+
+async function optimizeForCloudUpload(inputFile) {
+  if (
+    typeof window === 'undefined' ||
+    typeof document === 'undefined' ||
+    typeof AudioContext === 'undefined' ||
+    typeof MediaRecorder === 'undefined'
+  ) {
+    throw new Error(
+      'This browser cannot optimize large media files automatically. Please export audio only (mp3/m4a) and try again.'
+    )
+  }
+
+  const preferredMime = getPreferredAudioMime()
+  if (!preferredMime) {
+    throw new Error(
+      'This browser does not support in-browser audio compression. Please export audio only (mp3/m4a) and try again.'
+    )
+  }
+
+  const objectUrl = URL.createObjectURL(inputFile)
+  const media = document.createElement('audio')
+  media.preload = 'auto'
+  media.src = objectUrl
+  media.crossOrigin = 'anonymous'
+  media.muted = true
+  media.playsInline = true
+
+  const ctx = new AudioContext()
+  const source = ctx.createMediaElementSource(media)
+  const destination = ctx.createMediaStreamDestination()
+  source.connect(destination)
+  source.connect(ctx.destination)
+  ctx.destination.channelInterpretation = 'speakers'
+
+  const recorder = new MediaRecorder(destination.stream, {
+    mimeType: preferredMime,
+    audioBitsPerSecond: 64000,
+  })
+
+  /** @type {BlobPart[]} */
+  const chunks = []
+  recorder.addEventListener('dataavailable', (evt) => {
+    if (evt.data && evt.data.size > 0) chunks.push(evt.data)
+  })
+
+  try {
+    await media.play()
+    recorder.start(1000)
+    await new Promise((resolve, reject) => {
+      const fail = (err) => reject(err || new Error('Could not process media.'))
+      media.addEventListener('ended', resolve, { once: true })
+      media.addEventListener('error', () => fail(new Error('Could not read that file format.')), {
+        once: true,
+      })
+      recorder.addEventListener('error', () => fail(new Error('Audio compression failed.')), {
+        once: true,
+      })
+    })
+    if (recorder.state !== 'inactive') recorder.stop()
+    await new Promise((resolve) => recorder.addEventListener('stop', resolve, { once: true }))
+  } catch (e) {
+    throw new Error(
+      e?.message ||
+        'Could not optimize this file in the browser. Please export audio only (mp3/m4a) and try again.'
+    )
+  } finally {
+    media.pause()
+    media.removeAttribute('src')
+    media.load()
+    URL.revokeObjectURL(objectUrl)
+    await ctx.close().catch(() => {})
+  }
+
+  const blob = new Blob(chunks, { type: preferredMime })
+  if (!blob.size) {
+    throw new Error('Optimization produced an empty audio file. Please try a different export.')
+  }
+
+  const optimized = new File([blob], buildOptimizedName(inputFile.name, preferredMime), {
+    type: preferredMime,
+    lastModified: Date.now(),
+  })
+
+  if (optimized.size >= inputFile.size && inputFile.size <= OPENAI_AUDIO_MAX_BYTES) {
+    return inputFile
+  }
+  if (optimized.size > CLOUD_TARGET_BYTES && optimized.size >= inputFile.size) {
+    throw new Error('Could not reduce this file enough. Please trim or export lower-quality audio.')
+  }
+  return optimized
 }
 
 function resetAiViews() {
